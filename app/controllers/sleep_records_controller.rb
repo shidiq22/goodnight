@@ -12,7 +12,7 @@ class SleepRecordsController < ApplicationController
     sleep_records = user.sleep_records.order(created_at: :asc)
     render json: sleep_records, status: :ok
   end
-  
+
   # API endpoint for following another user
   def follow_user
     user = User.find(params[:user_id])
@@ -27,5 +27,17 @@ class SleepRecordsController < ApplicationController
     friend = User.find(params[:friend_id])
     user.following.delete(friend)
     render json: { message: "Successfully unfollowed user #{friend.id}" }, status: :ok
+  end
+
+  # API endpoint for retrieving sleep records of following users from the previous week, sorted by sleep duration
+  def following_sleep_records
+    user = User.find(params[:user_id])
+    following_users = user.following
+    sleep_records = following_users.joins(:sleep_records)
+                      .where("sleep_records.clock_in_time >= ?", 1.week.ago)
+                      .select("sleep_records.*, sleep_records.clock_out_time - sleep_records.clock_in_time AS sleep_duration")
+                      .order("sleep_duration DESC")
+                      .distinct
+    render json: sleep_records, status: :ok
   end
 end
