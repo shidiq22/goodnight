@@ -12,4 +12,20 @@ class SleepRecordsController < ApplicationController
     sleep_records = user.sleep_records.order(created_at: :asc)
     render json: sleep_records, status: :ok
   end
+  
+  # API endpoint for following another user
+  def follow_user
+    user = User.find(params[:user_id])
+    friend = User.find(params[:friend_id])
+    user.following << friend unless user.following.include?(friend)
+    render json: { message: "Successfully followed user #{friend.id}" }, status: :ok
+  end
+
+  # API endpoint for unfollowing another user
+  def unfollow_user
+    user = User.find(params[:user_id])
+    friend = User.find(params[:friend_id])
+    user.following.delete(friend)
+    render json: { message: "Successfully unfollowed user #{friend.id}" }, status: :ok
+  end
 end
